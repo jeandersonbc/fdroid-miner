@@ -4,8 +4,31 @@
 #
 # Contributors:
 #     Jeanderson Candido <http://jeandersonbc.github.io>
+import os
+import time
+
 from xml.etree import ElementTree
 from urllib import urlretrieve
+
+
+class FileManager:
+    def __init__(self):
+        self._createOutputDir()
+
+    def createDir(self, name):
+        path = self._outputDir + os.sep + name + os.sep
+        os.mkdir(path)
+        return path
+
+    def _createOutputDir(self, name="downloads", suffixId=0):
+        try:
+            name = name if suffixId == 0 else "%s-%s" %(name, str(suffixId))
+            os.mkdir(name)
+            self._outputDir = name
+        except OSError:
+            suffixId += 1
+            self._createOutputDir(suffixId=suffixId)
+
 
 class AppEntry:
     """ Represents data from a registered App """
@@ -44,11 +67,15 @@ class FDroidWrapper:
         indexUrl = "https://f-droid.org/repo/index.xml"
         localPath = "f-droid-meta.xml"
         urlretrieve(indexUrl, localPath)
-        self._indexDataXmlTree = ElementTree.parse(localPath);
+        self._indexDataXmlTree = ElementTree.parse(localPath)
+        self._fileManager = FileManager()
 
     def download(self, appData=AppEntry()):
         """ Downloads an app based on the given app entry """
-        pass
+        baseUrl = "http://f-droid.org/repo/"
+        path = self._fileManager.createDir(appData.getId())
+        urlretrieve(baseUrl + appData.getSrcRef, path + appData.getSrcRef)
+        urlretrieve(baseUrl + appData.getApkRef, path + appData.getApkRef)
 
     def getAppsData(self, n=None):
         """ Returns a list of App data """
@@ -72,3 +99,4 @@ if __name__ == "__main__":
     apps = fdroid.getAppsData()
     for app in apps:
         fdroid.download(app)
+        time.sleep(60)
