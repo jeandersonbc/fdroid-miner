@@ -74,8 +74,8 @@ class FDroidWrapper:
         """ Downloads an app based on the given app entry """
         baseUrl = "http://f-droid.org/repo/"
         path = self._fileManager.createDir(appData.getId())
-        urlretrieve(baseUrl + appData.getSrcRef, path + appData.getSrcRef)
-        urlretrieve(baseUrl + appData.getApkRef, path + appData.getApkRef)
+        urlretrieve(baseUrl + appData.getSrcRef(), path + appData.getSrcRef())
+        urlretrieve(baseUrl + appData.getApkRef(), path + appData.getApkRef())
 
     def getAppsData(self, n=None):
         """ Returns a list of App data """
