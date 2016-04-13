@@ -25,7 +25,17 @@ class FDroidWrapper:
         """ Helper method to print XML content. """
         root = self._indexDataXmlTree.getroot()
         for child in root:
-            print child.tag, child.attrib
+            if not child.tag == "application":
+                print child.tag, child.attrib
+        print "Registered Apps: %d" %(self._countRegisteredApps())
+
+    def _countRegisteredApps(self):
+        total = 0
+        root = self._indexDataXmlTree.getroot()
+        for app in root.iter("application"):
+            total += 1
+            return total
+
 
 
 if __name__ == "__main__":
