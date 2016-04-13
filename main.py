@@ -7,6 +7,31 @@
 from xml.etree import ElementTree
 from urllib import urlretrieve
 
+class AppEntry:
+    """ Represents data from a registered App """
+
+    def __init__(self, entryId="", apkRef="", srcRef="", size="0"):
+        self._id = entryId
+        self._apkRef = apkRef
+        self._srcRef = srcRef
+        self._size = size
+
+    def getId(self):
+        return self._id
+
+    def getApkRef(self):
+        return self._apkRef
+
+    def getSrcRef(self):
+        return self._srcRef
+
+    def getSize(self):
+        return self._size
+
+    def __str__(self):
+        return "%s,%s,%s,%s" %(self._id, self._apkRef, self._srcRef, self._size)
+
+
 class FDroidWrapper:
 
     def __init__(self):
@@ -21,23 +46,29 @@ class FDroidWrapper:
         urlretrieve(indexUrl, localPath)
         self._indexDataXmlTree = ElementTree.parse(localPath);
 
-    def showMetadataContent(self):
-        """ Helper method to print XML content. """
-        root = self._indexDataXmlTree.getroot()
-        for child in root:
-            if not child.tag == "application":
-                print child.tag, child.attrib
-        print "Registered Apps: %d" %(self._countRegisteredApps())
+    def download(self, appData=AppEntry()):
+        """ Downloads an app based on the given app entry """
+        pass
 
-    def _countRegisteredApps(self):
-        total = 0
+    def getAppsData(self, n=None):
+        """ Returns a list of App data """
         root = self._indexDataXmlTree.getroot()
-        for app in root.iter("application"):
-            total += 1
-            return total
-
+        data = []
+        for xmlEntry in root.iter("application"):
+            appId = xmlEntry.get("id").replace(".", "-")
+            latestPkgRelease = xmlEntry.iter("package").next()
+            try:
+                appApkRef = latestPkgRelease.find("apkname").text
+                appSrcRef = latestPkgRelease.find("srcname").text
+                appSize = latestPkgRelease.find("size").text
+                data.append(AppEntry(entryId=appId, apkRef=appApkRef, srcRef=appSrcRef, size=appSize))
+            except AttributeError as error:
+                print "Skipped app \"%s\" because a required attribute was not found." %(appId)
+        return data
 
 
 if __name__ == "__main__":
     fdroid = FDroidWrapper()
-    fdroid.showMetadataContent()
+    apps = fdroid.getAppsData()
+    for app in apps:
+        fdroid.download(app)
